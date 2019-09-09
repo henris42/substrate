@@ -203,7 +203,7 @@ impl<Block: BlockT> Blockchain<Block> {
 
 	/// Set an existing block as head.
 	pub fn set_head(&self, id: BlockId<Block>) -> error::Result<()> {
-		let header = match self.header(id)? {
+		let header = match self.header(id, String::from("set_head"))? {
 			Some(h) => h,
 			None => return Err(error::Error::UnknownBlock(format!("{}", id))),
 		};
@@ -254,7 +254,7 @@ impl<Block: BlockT> Blockchain<Block> {
 	}
 
 	fn finalize_header(&self, id: BlockId<Block>, justification: Option<Justification>) -> error::Result<()> {
-		let hash = match self.header(id)? {
+		let hash = match self.header(id, String::from("finalize_header"))? {
 			Some(h) => h.hash(),
 			None => return Err(error::Error::UnknownBlock(format!("{}", id))),
 		};
@@ -288,7 +288,7 @@ impl<Block: BlockT> Blockchain<Block> {
 }
 
 impl<Block: BlockT> HeaderBackend<Block> for Blockchain<Block> {
-	fn header(&self, id: BlockId<Block>) -> error::Result<Option<<Block as BlockT>::Header>> {
+	fn header(&self, id: BlockId<Block>, _origin: String) -> error::Result<Option<<Block as BlockT>::Header>> {
 		Ok(self.id(id).and_then(|hash| {
 			self.storage.read().blocks.get(&hash).map(|b| b.header().clone())
 		}))
@@ -599,10 +599,8 @@ where
 	type OffchainStorage = OffchainStorage;
 
 	fn begin_operation(&self) -> error::Result<Self::BlockImportOperation> {
-		info!("000 start begin_operation");
 		let old_state = self.state_at(BlockId::Hash(Default::default()))?;
-		info!("000 end begin_operation");
-		
+
 		Ok(BlockImportOperation {
 			pending_block: None,
 			pending_cache: Default::default(),

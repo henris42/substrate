@@ -342,7 +342,7 @@ where
 
 					#[allow(deprecated)]
 					let canon_hash =
-						self.inner.backend().blockchain().header(BlockId::Number(canon_number))
+						self.inner.backend().blockchain().header(BlockId::Number(canon_number), String::from("make_authorities_changes"))
 							.map_err(|e| ConsensusError::ClientImport(e.to_string()))?
 							.expect("the given block number is less or equal than the current best finalized number; \
 									 current best finalized number must exist in chain; qed.")

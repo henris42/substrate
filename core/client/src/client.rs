@@ -318,7 +318,7 @@ impl<B, E, Block, RA> Client<B, E, Block, RA> where
 		build_genesis_storage: S,
 		execution_strategies: ExecutionStrategies
 	) -> error::Result<Self> {
-		if backend.blockchain().header(BlockId::Number(Zero::zero()))?.is_none() {
+		if backend.blockchain().header(BlockId::Number(Zero::zero()), String::from("client new"))?.is_none() {
 			let (genesis_storage, children_genesis_storage) = build_genesis_storage.build_storage()?;
 			let mut op = backend.begin_operation()?;
 			backend.begin_state_operation(&mut op, BlockId::Hash(Default::default()))?;
@@ -1313,7 +1313,7 @@ impl<B, E, Block, RA> Client<B, E, Block, RA> where
 
 	/// Get block header by id.
 	pub fn header(&self, id: &BlockId<Block>) -> error::Result<Option<<Block as BlockT>::Header>> {
-		self.backend.blockchain().header(*id)
+		self.backend.blockchain().header(*id, String::from("impl Client header()"))
 	}
 
 	/// Get block body by id.
@@ -1340,7 +1340,7 @@ impl<B, E, Block, RA> Client<B, E, Block, RA> where
 	/// Gets the uncles of the block with `target_hash` going back `max_generation` ancestors.
 	pub fn uncles(&self, target_hash: Block::Hash, max_generation: NumberFor<Block>) -> error::Result<Vec<Block::Hash>> {
 		let load_header = |id: Block::Hash| -> error::Result<Block::Header> {
-			match self.backend.blockchain().header(BlockId::Hash(id))? {
+			match self.backend.blockchain().header(BlockId::Hash(id), String::from("uncles()"))? {
 				Some(hdr) => Ok(hdr),
 				None => Err(Error::UnknownBlock(format!("Unknown block {:?}", id))),
 			}
@@ -1408,8 +1408,8 @@ impl<B, E, Block, RA> ChainHeaderBackend<Block> for Client<B, E, Block, RA> wher
 	Block: BlockT<Hash=H256>,
 	RA: Send + Sync
 {
-	fn header(&self, id: BlockId<Block>) -> error::Result<Option<Block::Header>> {
-		self.backend.blockchain().header(id)
+	fn header(&self, id: BlockId<Block>, origin: String) -> error::Result<Option<Block::Header>> {
+ 		self.backend.blockchain().header(id, String::from("ChainHeaderBackend header()"))
 	}
 
 	fn info(&self) -> blockchain::Info<Block> {
@@ -1648,7 +1648,7 @@ where
 		let best_hash = self.best_containing(info.best_hash, None)?
 			.unwrap_or(info.best_hash);
 
-		Ok(self.backend.blockchain().header(BlockId::Hash(best_hash))?
+		Ok(self.backend.blockchain().header(BlockId::Hash(best_hash), String::from("best_block_header"))?
 			.expect("given block hash was fetched from block in db; qed"))
 	}
 
@@ -1669,7 +1669,7 @@ where
 		maybe_max_number: Option<NumberFor<Block>>
 	) -> error::Result<Option<Block::Hash>> {
 		let target_header = {
-			match self.backend.blockchain().header(BlockId::Hash(target_hash))? {
+			match self.backend.blockchain().header(BlockId::Hash(target_hash), String::from("best_containing"))? {
 				Some(x) => x,
 				// target not in blockchain
 				None => { return Ok(None); },
@@ -1723,7 +1723,7 @@ where
 			// waiting until we are <= max_number
 			if let Some(max_number) = maybe_max_number {
 				loop {
-					let current_header = self.backend.blockchain().header(BlockId::Hash(current_hash.clone()))?
+					let current_header = self.backend.blockchain().header(BlockId::Hash(current_hash.clone()), String::from("best_containing 2"))?
 						.ok_or_else(|| error::Error::from(format!("failed to get header for hash {}", current_hash)))?;
 
 					if current_header.number() <= &max_number {
@@ -1742,7 +1742,7 @@ where
 					return Ok(Some(best_hash));
 				}
 
-				let current_header = self.backend.blockchain().header(BlockId::Hash(current_hash.clone()))?
+				let current_header = self.backend.blockchain().header(BlockId::Hash(current_hash.clone()), String::from("best_containing 3"))?
 					.ok_or_else(|| error::Error::from(format!("failed to get header for hash {}", current_hash)))?;
 
 				// stop search in this chain once we go below the target's block number

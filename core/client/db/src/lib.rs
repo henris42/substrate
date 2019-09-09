@@ -288,7 +288,7 @@ impl<Block: BlockT> BlockchainDb<Block> {
 }
 
 impl<Block: BlockT> client::blockchain::HeaderBackend<Block> for BlockchainDb<Block> {
-	fn header(&self, id: BlockId<Block>) -> Result<Option<Block::Header>, client::error::Error> {
+	fn header(&self, id: BlockId<Block>, origin: String) -> Result<Option<Block::Header>, client::error::Error> {
 		let r = utils::read_header(&*self.db, columns::KEY_LOOKUP, columns::HEADER, id);
 		r
 	}
@@ -330,7 +330,7 @@ impl<Block: BlockT> client::blockchain::HeaderBackend<Block> for BlockchainDb<Bl
 	}
 
 	fn hash(&self, number: NumberFor<Block>) -> Result<Option<Block::Hash>, client::error::Error> {
-		let r = self.header(BlockId::Number(number)).and_then(|maybe_header| match maybe_header {
+		let r = self.header(BlockId::Number(number), String::from("BlockchainDb hash()")).and_then(|maybe_header| match maybe_header {
 			Some(header) => Ok(Some(header.hash().clone())),
 			None => Ok(None),
 		});
@@ -1118,7 +1118,7 @@ impl<Block: BlockT<Hash=H256>> Backend<Block> {
 		};
 
 		let cache_update = if let Some(set_head) = operation.set_head {
-			if let Some(header) = ::client::blockchain::HeaderBackend::header(&self.blockchain, set_head)? {
+			if let Some(header) = ::client::blockchain::HeaderBackend::header(&self.blockchain, set_head, String::from("try_commit_operation"))? {
 				let number = header.number();
 				let hash = header.hash();
 
@@ -1352,7 +1352,7 @@ impl<Block> client::backend::Backend<Block, Blake2Hasher> for Backend<Block> whe
 			match self.storage.state_db.revert_one() {
 				Some(commit) => {
 					apply_state_commit(&mut transaction, commit);
-					let removed = self.blockchain.header(BlockId::Number(best))?.ok_or_else(
+					let removed = self.blockchain.header(BlockId::Number(best), String::from("revert()"))?.ok_or_else(
 						|| client::error::Error::UnknownBlock(
 							format!("Error reverting to {}. Block hash not found.", best)))?;
 
@@ -1385,7 +1385,6 @@ impl<Block> client::backend::Backend<Block, Blake2Hasher> for Backend<Block> whe
 
 	fn state_at(&self, block: BlockId<Block>) -> Result<Self::State, client::error::Error> {
 		use client::blockchain::HeaderBackend as BcHeaderBackend;
-		info("000 START state_at");
 
 		// special case for genesis initialization
 		match block {
@@ -1399,7 +1398,7 @@ impl<Block> client::backend::Backend<Block, Blake2Hasher> for Backend<Block> whe
 			_ => {}
 		}
 
-		let r = match self.blockchain.header(block) {
+		let r = match self.blockchain.header(block, String::from("state_at")) {
 			Ok(Some(ref hdr)) => {
 				let hash = hdr.hash();
 				if let Ok(()) = self.storage.state_db.pin(&hash) {

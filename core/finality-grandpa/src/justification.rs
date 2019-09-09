@@ -72,7 +72,7 @@ impl<Block: BlockT<Hash=H256>> GrandpaJustification<Block> {
 				if current_hash == commit.target_hash { break; }
 
 				#[allow(deprecated)]
-				match client.backend().blockchain().header(BlockId::Hash(current_hash))? {
+				match client.backend().blockchain().header(BlockId::Hash(current_hash), String::from("from_commit"))? {
 					Some(current_header) => {
 						if *current_header.number() <= commit.target_number {
 							return error();

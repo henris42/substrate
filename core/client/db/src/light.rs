@@ -145,7 +145,7 @@ impl<Block> BlockchainHeaderBackend<Block> for LightStorage<Block>
 	where
 		Block: BlockT,
 {
-	fn header(&self, id: BlockId<Block>) -> ClientResult<Option<Block::Header>> {
+	fn header(&self, id: BlockId<Block>, origin: String) -> ClientResult<Option<Block::Header>> {
 		utils::read_header(&*self.db, columns::KEY_LOOKUP, columns::HEADER, id)
 	}
 
@@ -186,14 +186,14 @@ impl<Block> BlockchainHeaderBackend<Block> for LightStorage<Block>
 	}
 
 	fn hash(&self, number: NumberFor<Block>) -> ClientResult<Option<Block::Hash>> {
-		Ok(self.header(BlockId::Number(number))?.map(|header| header.hash().clone()))
+		Ok(self.header(BlockId::Number(number), String::from("Lightstorage hash"))?.map(|header| header.hash().clone()))
 	}
 }
 
 impl<Block: BlockT> LightStorage<Block> {
 	// Get block changes trie root, if available.
 	fn changes_trie_root(&self, block: BlockId<Block>) -> ClientResult<Option<Block::Hash>> {
-		self.header(block)
+		self.header(block, String::from("lightstorage changes_tries_root"))
 			.map(|header| header.and_then(|header|
 				header.digest().log(DigestItem::as_changes_trie_root)
 					.cloned()))
@@ -458,7 +458,7 @@ impl<Block> LightBlockchainStorage<Block> for LightStorage<Block>
 	}
 
 	fn set_head(&self, id: BlockId<Block>) -> ClientResult<()> {
-		if let Some(header) = self.header(id)? {
+		if let Some(header) = self.header(id, String::from("light set_head()"))? {
 			let hash = header.hash();
 			let number = header.number();
 
@@ -489,7 +489,7 @@ impl<Block> LightBlockchainStorage<Block> for LightStorage<Block>
 	}
 
 	fn finalize_header(&self, id: BlockId<Block>) -> ClientResult<()> {
-		if let Some(header) = self.header(id)? {
+		if let Some(header) = self.header(id, String::from("light finalize_header"))? {
 			let mut transaction = DBTransaction::new();
 			let hash = header.hash();
 			let number = *header.number();

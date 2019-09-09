@@ -104,8 +104,8 @@ impl<S, F> Blockchain<S, F> {
 }
 
 impl<S, F, Block> BlockchainHeaderBackend<Block> for Blockchain<S, F> where Block: BlockT, S: Storage<Block>, F: Fetcher<Block> {
-	fn header(&self, id: BlockId<Block>) -> ClientResult<Option<Block::Header>> {
-		match self.storage.header(id)? {
+	fn header(&self, id: BlockId<Block>, origin: String) -> ClientResult<Option<Block::Header>> {
+		match self.storage.header(id, String::from("blockchain light header()"))? {
 			Some(header) => Ok(Some(header)),
 			None => {
 				let number = match id {
@@ -153,7 +153,7 @@ impl<S, F, Block> BlockchainHeaderBackend<Block> for Blockchain<S, F> where Bloc
 
 impl<S, F, Block> BlockchainBackend<Block> for Blockchain<S, F> where Block: BlockT, S: Storage<Block>, F: Fetcher<Block> {
 	fn body(&self, id: BlockId<Block>) -> ClientResult<Option<Vec<Block::Extrinsic>>> {
-		let header = match self.header(id)? {
+		let header = match self.header(id, String::from("body"))? {
 			Some(header) => header,
 			None => return Ok(None),
 		};

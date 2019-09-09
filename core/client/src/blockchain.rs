@@ -28,7 +28,7 @@ use crate::error::{Error, Result};
 /// Blockchain database header backend. Does not perform any validation.
 pub trait HeaderBackend<Block: BlockT>: Send + Sync {
 	/// Get block header. Returns `None` if block is not found.
-	fn header(&self, id: BlockId<Block>) -> Result<Option<Block::Header>>;
+	fn header(&self, id: BlockId<Block>, origin: String) -> Result<Option<Block::Header>>;
 	/// Get blockchain info.
 	fn info(&self) -> Info<Block>;
 	/// Get block status.
@@ -49,14 +49,14 @@ pub trait HeaderBackend<Block: BlockT>: Send + Sync {
 	/// Convert an arbitrary block ID into a block hash.
 	fn block_number_from_id(&self, id: &BlockId<Block>) -> Result<Option<NumberFor<Block>>> {
 		match *id {
-			BlockId::Hash(_) => Ok(self.header(*id)?.map(|h| h.number().clone())),
+			BlockId::Hash(_) => Ok(self.header(*id, String::from("block_number_from_id"))?.map(|h| h.number().clone())),
 			BlockId::Number(n) => Ok(Some(n)),
 		}
 	}
 
 	/// Get block header. Returns `UnknownBlock` error if block is not found.
 	fn expect_header(&self, id: BlockId<Block>) -> Result<Block::Header> {
-		self.header(id)?.ok_or_else(|| Error::UnknownBlock(format!("{}", id)))
+		self.header(id, String::from("expect_header"))?.ok_or_else(|| Error::UnknownBlock(format!("{}", id)))
 	}
 
 	/// Convert an arbitrary block ID into a block number. Returns `UnknownBlock` error if block is not found.
@@ -205,7 +205,7 @@ pub fn tree_route<Block: BlockT, Backend: HeaderBackend<Block>>(
 	use sr_primitives::traits::Header;
 
 	let load_header = |id: BlockId<Block>| {
-		match backend.header(id) {
+		match backend.header(id, String::from("tree_route")) {
 			Ok(Some(hdr)) => Ok(hdr),
 			Ok(None) => Err(Error::UnknownBlock(format!("Unknown block {:?}", id))),
 			Err(e) => Err(e),

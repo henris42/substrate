@@ -299,9 +299,7 @@ impl<Block: BlockT> BlockchainCache<Block> for DbCacheSync<Block> {
 		&self,
 		key: &CacheKeyId,
 		at: &BlockId<Block>,
-	) -> Option<((NumberFor<Block>, Block::Hash), Option<(NumberFor<Block>, Block::Hash)>, Vec<u8>)> {
-		info!("START @@@@ cache get_at() {:?}", at);
-		
+	) -> Option<((NumberFor<Block>, Block::Hash), Option<(NumberFor<Block>, Block::Hash)>, Vec<u8>)> {		
 		let cache = self.0.read();
 		let storage = cache.cache_at.get(key)?.storage();
 		let db = storage.db();
@@ -324,7 +322,6 @@ impl<Block: BlockT> BlockchainCache<Block> for DbCacheSync<Block> {
 				ComplexBlockId::new(hash, number)
 			},
 		};
-		info!("END @@@@ cache get_at() {:?}", at);
 		
 		cache.cache_at
 			.get(key)?

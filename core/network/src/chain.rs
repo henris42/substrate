@@ -138,6 +138,7 @@ impl<B, E, Block, RA> Client<Block> for SubstrateClient<B, E, Block, RA> where
 			self.backend().blockchain(),
 			BlockId::Hash(*block),
 			BlockId::Hash(*base),
+			String::from("chain is_descendent_of")
 		)?;
 
 		Ok(tree_route.common_block().hash == *base)

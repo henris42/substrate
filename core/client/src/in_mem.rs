@@ -226,6 +226,7 @@ impl<Block: BlockT> Blockchain<Block> {
 					self,
 					BlockId::Hash(best_hash),
 					BlockId::Hash(*header.parent_hash()),
+					String::from("apply_head"),
 				)?;
 				Some(route)
 			}

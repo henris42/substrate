@@ -502,6 +502,7 @@ pub(crate) fn ancestry<B, Block: BlockT<Hash=H256>, E, RA>(
 		client.backend().blockchain(),
 		BlockId::Hash(block),
 		BlockId::Hash(base),
+		String::from("environment ancestry()")
 	);
 
 	let tree_route = match tree_route_res {

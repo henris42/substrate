@@ -874,6 +874,7 @@ impl<Block: BlockT<Hash=H256>> Backend<Block> {
 				&self.blockchain,
 				BlockId::Hash(meta.best_hash),
 				BlockId::Hash(route_to),
+				String::from("set_head_with_Transaction")
 			)?;
 
 			// uncanonicalize: check safety violations and ensure the numbers no longer

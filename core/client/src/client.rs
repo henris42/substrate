@@ -1084,6 +1084,7 @@ impl<B, E, Block, RA> Client<B, E, Block, RA> where
 			self.backend.blockchain(),
 			BlockId::Hash(last_finalized),
 			BlockId::Hash(block),
+			String::from("apply_finality_with_block_hash"),
 		)?;
 
 		if let Some(retracted) = route_from_finalized.retracted().get(0) {
@@ -1097,6 +1098,7 @@ impl<B, E, Block, RA> Client<B, E, Block, RA> where
 			self.backend.blockchain(),
 			BlockId::Hash(best_block),
 			BlockId::Hash(block),
+			String::from("apply_finality_with_block_hash"),
 		)?;
 
 		// if the block is not a direct ancestor of the current best chain,
@@ -1866,6 +1868,7 @@ pub mod utils {
 				client.backend().blockchain(),
 				BlockId::Hash(*hash),
 				BlockId::Hash(*base),
+				String::from("is_descendent_of"),
 			)?;
 
 			Ok(tree_route.common_block().hash == *base)

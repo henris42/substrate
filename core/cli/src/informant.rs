@@ -62,6 +62,7 @@ where C: Components {
 					client.backend().blockchain(),
 					BlockId::Hash(last_hash.clone()),
 					BlockId::Hash(n.hash),
+					String::from("informant build 1")
 				);
 
 				match tree_route {

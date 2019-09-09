@@ -216,6 +216,7 @@ impl<Block: BlockT> LightStorage<Block> {
 				self,
 				BlockId::Hash(meta.best_hash),
 				BlockId::Hash(route_to),
+				String::from("set_head_with_Transaction")
 			)?;
 
 			// update block number to hash lookup entries.

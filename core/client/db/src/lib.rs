@@ -289,6 +289,7 @@ impl<Block: BlockT> BlockchainDb<Block> {
 
 impl<Block: BlockT> client::blockchain::HeaderBackend<Block> for BlockchainDb<Block> {
 	fn header(&self, id: BlockId<Block>, origin: String) -> Result<Option<Block::Header>, client::error::Error> {
+		info!("@@@@ header() origin is {}", origin);
 		let r = utils::read_header(&*self.db, columns::KEY_LOOKUP, columns::HEADER, id);
 		r
 	}

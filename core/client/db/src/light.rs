@@ -146,6 +146,7 @@ impl<Block> BlockchainHeaderBackend<Block> for LightStorage<Block>
 		Block: BlockT,
 {
 	fn header(&self, id: BlockId<Block>, origin: String) -> ClientResult<Option<Block::Header>> {
+		info!("@@@@ header() origin is {}", origin);
 		utils::read_header(&*self.db, columns::KEY_LOOKUP, columns::HEADER, id)
 	}
 

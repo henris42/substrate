@@ -1413,7 +1413,6 @@ impl<Block> client::backend::Backend<Block, Blake2Hasher> for Backend<Block> whe
 			Ok(None) => Err(client::error::Error::UnknownBlock(format!("Unknown state for block {:?}", block))),
 			Err(e) => Err(e),
 		};
-		info!("000 END state_at");
 		r
 	}
 

@@ -1338,7 +1338,7 @@ impl<B, E, Block, I, RA, PRA> BlockImport<Block> for BabeBlockImport<B, E, Block
 		// returns a function for checking whether a block is a descendent of another
 		// consistent with querying client directly after importing the block.
 		let parent_hash = *block.header.parent_hash();
-		let is_descendent_of = is_descendent_of(&self.client, Some((&hash, &parent_hash)));
+		let is_descendent_of = is_descendent_of(&self.client, Some((&hash, &parent_hash)), String::from("import_block"));
 
 		// check if there's any epoch change expected to happen at this slot
 		let mut epoch_changes = self.epoch_changes.lock();
@@ -1509,7 +1509,7 @@ pub fn import_queue<B, E, Block: BlockT<Hash=H256>, I, RA, PRA, T>(
 	let pruning_task = client.finality_notification_stream()
 		.map(|v| Ok::<_, ()>(v)).compat()
 		.for_each(move |notification| {
-			let is_descendent_of = is_descendent_of(&client, None);
+			let is_descendent_of = is_descendent_of(&client, None, String::from("import_queue"));
 			epoch_changes.lock().prune(
 				&notification.hash,
 				*notification.header.number(),

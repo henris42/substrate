@@ -206,6 +206,7 @@ pub fn tree_route<Block: BlockT, Backend: HeaderBackend<Block>>(
 	use sr_primitives::traits::Header;
 	println!("@@@@ tree_route_origin {}", origin);
 	let load_header = |id: BlockId<Block>| {
+		println!("@@@@ loading header {}", id);
 		match backend.header(id, String::from("tree_route")) {
 			Ok(Some(hdr)) => Ok(hdr),
 			Ok(None) => Err(Error::UnknownBlock(format!("Unknown block {:?}", id))),

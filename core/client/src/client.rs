@@ -1844,13 +1844,15 @@ pub mod utils {
 	pub fn is_descendent_of<'a, B, E, Block: BlockT<Hash=H256>, RA>(
 		client: &'a Client<B, E, Block, RA>,
 		current: Option<(&'a H256, &'a H256)>,
+		origin: String,
 	) -> impl Fn(&H256, &H256) -> Result<bool, error::Error> + 'a
 		where B: Backend<Block, Blake2Hasher>,
 			  E: CallExecutor<Block, Blake2Hasher> + Send + Sync,
 	{
+		info!("@@@@ is_descendent_of origin is {}", origin);
 		move |base, hash| {
 			if base == hash { return Ok(false); }
-
+			info!("@@@@ is_descendent_of \nbase={} \nhash={}\n", base, hash);	
 			let mut hash = hash;
 			if let Some((current_hash, current_parent_hash)) = current {
 				if base == current_hash { return Ok(false); }

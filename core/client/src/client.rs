@@ -1866,10 +1866,10 @@ pub mod utils {
 				}
 			}
 			info!("@@@@ is_descendent_of \nbase={} \nhash={} current={:?}\n", base, hash, current);	
-			// let mut search_base = base;
-			// if let Some(base_last_child) = client.parent_child.get(base) {
-			// 	search_base = base_last_child;
-			// }
+			let mut search_base = base;
+			if let Some(base_last_child) = client.parent_child.read().get(base) {
+				search_base = base_last_child;
+			}
 
 			let tree_route = blockchain::tree_route(
 				#[allow(deprecated)]
@@ -1880,10 +1880,9 @@ pub mod utils {
 			)?;
 
 			let r = tree_route.common_block().hash == *base;
-			// if r {
-			// 	client.parent_child.write().insert(*base, *hash);
-			// 	client.parent_child.read().len();
-			// }
+			if r {
+				client.parent_child.write().insert(*base, *hash);
+			}
 			Ok(r)
 		}
 	}

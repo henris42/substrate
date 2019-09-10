@@ -124,6 +124,7 @@ pub struct Client<B, E, Block, RA> where Block: BlockT {
 	// holds the block hash currently being imported. TODO: replace this with block queue
 	importing_block: RwLock<Option<Block::Hash>>,
 	execution_strategies: ExecutionStrategies,
+	parent_child: RwLock<HashMap<Block::Hash, Block::Hash>>,
 	_phantom: PhantomData<RA>,
 }
 
@@ -345,6 +346,7 @@ impl<B, E, Block, RA> Client<B, E, Block, RA> where
 			finality_notification_sinks: Default::default(),
 			importing_block: Default::default(),
 			execution_strategies,
+			parent_child: Default::default(),
 			_phantom: Default::default(),
 		})
 	}
@@ -1864,16 +1866,27 @@ pub mod utils {
 				}
 			}
 			info!("@@@@ is_descendent_of \nbase={} \nhash={} current={:?}\n", base, hash, current);	
-			
+			let mut search_base = base;
+			let mut parent_child = client.parent_child.read();
+			if let Some(base_last_child) = parent_child.get(base) {
+				search_base = base_last_child;
+				info!("@@@@ found base={:?} base_last_child={:?}", base, search_base);
+			}
+
 			let tree_route = blockchain::tree_route(
 				#[allow(deprecated)]
 				client.backend().blockchain(),
 				BlockId::Hash(*hash),
-				BlockId::Hash(*base),
+				BlockId::Hash(*search_base),
 				String::from("is_descendent_of"),
 			)?;
 
-			Ok(tree_route.common_block().hash == *base)
+			let r = tree_route.common_block().hash == *search_base;
+			if r {
+				info!("@@@@ hash = {:?} is descendent of = {:?}", *hash, *search_base);
+				client.parent_child.write().insert(*base, *hash);
+			}
+			Ok(r)
 		}
 	}
 }

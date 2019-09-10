@@ -124,7 +124,7 @@ pub struct Client<B, E, Block, RA> where Block: BlockT {
 	// holds the block hash currently being imported. TODO: replace this with block queue
 	importing_block: RwLock<Option<Block::Hash>>,
 	execution_strategies: ExecutionStrategies,
-	parent_child: RwLock<HashMap<Block::Hash, Block::Hash>>,
+	parent_children: RwLock<HashMap<Block::Hash, Vec<Block::Hash>>>,
 	_phantom: PhantomData<RA>,
 }
 
@@ -346,7 +346,7 @@ impl<B, E, Block, RA> Client<B, E, Block, RA> where
 			finality_notification_sinks: Default::default(),
 			importing_block: Default::default(),
 			execution_strategies,
-			parent_child: Default::default(),
+			parent_children: Default::default(),
 			_phantom: Default::default(),
 		})
 	}
@@ -1866,9 +1866,8 @@ pub mod utils {
 				}
 			}
 			info!("@@@@ is_descendent_of \nbase={} \nhash={} current={:?}\n", base, hash, current);	
-			let mut search_base = base;
-			if let Some(base_last_child) = client.parent_child.read().get(base) {
-				search_base = base_last_child;
+			if let Some(children) = client.parent_children.read().get(base) {
+				info!("@@@@ num of children {:?} {:?}", children.len(), children)
 			}
 
 			let tree_route = blockchain::tree_route(
@@ -1881,7 +1880,9 @@ pub mod utils {
 
 			let r = tree_route.common_block().hash == *base;
 			if r {
-				client.parent_child.write().insert(*base, *hash);
+				let mut parent_children = client.parent_children.write();
+				let mut children = parent_children.entry(*base).or_insert(vec![]);
+				children.push(*hash);
 			}
 			Ok(r)
 		}

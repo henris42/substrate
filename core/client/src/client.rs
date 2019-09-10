@@ -1863,7 +1863,7 @@ pub mod utils {
 					}
 				}
 			}
-			info!("@@@@ is_descendent_of \nbase={} \nhash={} current={}\n", base, hash, current);	
+			info!("@@@@ is_descendent_of \nbase={} \nhash={} current={:?}\n", base, hash, current);	
 			
 			let tree_route = blockchain::tree_route(
 				#[allow(deprecated)]

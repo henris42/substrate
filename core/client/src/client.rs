@@ -1852,7 +1852,6 @@ pub mod utils {
 		info!("@@@@ is_descendent_of origin is {}", origin);
 		move |base, hash| {
 			if base == hash { return Ok(false); }
-			info!("@@@@ is_descendent_of \nbase={} \nhash={}\n", base, hash);	
 			let mut hash = hash;
 			if let Some((current_hash, current_parent_hash)) = current {
 				if base == current_hash { return Ok(false); }
@@ -1864,7 +1863,8 @@ pub mod utils {
 					}
 				}
 			}
-
+			info!("@@@@ is_descendent_of \nbase={} \nhash={} current={}\n", base, hash, current);	
+			
 			let tree_route = blockchain::tree_route(
 				#[allow(deprecated)]
 				client.backend().blockchain(),

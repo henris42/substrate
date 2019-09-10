@@ -1866,26 +1866,24 @@ pub mod utils {
 				}
 			}
 			info!("@@@@ is_descendent_of \nbase={} \nhash={} current={:?}\n", base, hash, current);	
-			let mut search_base = base;
-			let mut parent_child = client.parent_child.read();
-			if let Some(base_last_child) = parent_child.get(base) {
-				search_base = base_last_child;
-				info!("@@@@ found base={:?} base_last_child={:?}", base, search_base);
-			}
+			// let mut search_base = base;
+			// if let Some(base_last_child) = client.parent_child.get(base) {
+			// 	search_base = base_last_child;
+			// }
 
 			let tree_route = blockchain::tree_route(
 				#[allow(deprecated)]
 				client.backend().blockchain(),
 				BlockId::Hash(*hash),
-				BlockId::Hash(*search_base),
+				BlockId::Hash(*base),
 				String::from("is_descendent_of"),
 			)?;
 
-			let r = tree_route.common_block().hash == *search_base;
-			if r {
-				info!("@@@@ hash = {:?} is descendent of = {:?}", *hash, *search_base);
-				client.parent_child.write().insert(*base, *hash);
-			}
+			let r = tree_route.common_block().hash == *base;
+			// if r {
+			// 	client.parent_child.write().insert(*base, *hash);
+			// 	client.parent_child.read().len();
+			// }
 			Ok(r)
 		}
 	}

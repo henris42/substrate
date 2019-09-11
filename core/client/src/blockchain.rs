@@ -213,10 +213,10 @@ pub fn tree_route<Block: BlockT, Backend: HeaderBackend<Block>>(
 		let cached = backend.get_cached(id);
 		
 		if cached.is_ok() {
-			info!("@@@@ Using cached value!");
+			// info!("@@@@ Using cached value!");
 			return cached
 		}
-		info!("@@@@ Missed!");
+		// info!("@@@@ Missed!");
 		
 		match backend.header(id, String::from("tree_route")) {
 			Ok(Some(hdr)) => {

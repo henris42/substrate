@@ -1865,9 +1865,15 @@ pub mod utils {
 					}
 				}
 			}
-			info!("@@@@ is_descendent_of \nbase={} \nhash={} current={:?}\n", base, hash, current);	
+			info!("@@@@ is_descendent_of \nbase={} \nhash={} current={:?}\n", base, hash, current);
+			let mut is_descendent = false;
 			if let Some(children) = client.parent_children.read().get(base) {
-				info!("@@@@ num of children {:?} {:?}", children.len(), children)
+				info!("@@@@ num of children {:?} {:?}", children.len(), children);
+				for c in children {
+					if *hash == *c {
+						return Ok(true)
+					}
+				}
 			}
 
 			let tree_route = blockchain::tree_route(

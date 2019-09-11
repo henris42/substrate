@@ -210,18 +210,18 @@ pub fn tree_route<Block: BlockT, Backend: HeaderBackend<Block>>(
 	use sr_primitives::traits::Header;
 	let load_header = |id: BlockId<Block>| {
 	
-		let cached = backend.get_cached(id);
+		// let cached = backend.get_cached(id);
 		
-		if cached.is_ok() {
+		// if cached.is_ok() {
 			// info!("@@@@ Using cached value!");
-			return cached
-		}
+			// return cached
+		// }
 		// info!("@@@@ Missed!");
 		
 		match backend.header(id, String::from("tree_route")) {
 			Ok(Some(hdr)) => {
 				let data = (hdr.hash(), hdr.number().clone(), hdr.parent_hash().clone());
-				backend.put_cached(id, data.clone());
+				// backend.put_cached(id, data.clone());
 				Ok(data)
 			},
 			Ok(None) => Err(Error::UnknownBlock(format!("Unknown block {:?}", id))),

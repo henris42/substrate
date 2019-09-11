@@ -218,9 +218,12 @@ pub fn tree_route<Block: BlockT, Backend: HeaderBackend<Block>>(
 		}
 		info!("@@@@ Missed!");
 		
-
 		match backend.header(id, String::from("tree_route")) {
-			Ok(Some(hdr)) => Ok((hdr.hash(), hdr.number().clone(), hdr.parent_hash().clone())),
+			Ok(Some(hdr)) => {
+				let data = (hdr.hash(), hdr.number().clone(), hdr.parent_hash().clone());
+				backend.put_cached(id, data.clone());
+				Ok(data)
+			},
 			Ok(None) => Err(Error::UnknownBlock(format!("Unknown block {:?}", id))),
 			Err(e) => Err(e),
 		}

@@ -295,6 +295,15 @@ impl<Block: BlockT> HeaderBackend<Block> for Blockchain<Block> {
 		}))
 	}
 
+	fn get_cached(&self, id: BlockId<Block>) -> error::Result<(Block::Hash, NumberFor<Block>, Block::Hash)> {
+		unimplemented!()
+	}
+
+	fn put_cached(&self, id: BlockId<Block>, value: (Block::Hash, NumberFor<Block>, Block::Hash)) {
+		unimplemented!()
+	}
+
+
 	fn info(&self) -> blockchain::Info<Block> {
 		let storage = self.storage.read();
 		blockchain::Info {

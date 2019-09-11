@@ -249,6 +249,7 @@ pub struct BlockchainDb<Block: BlockT> {
 	db: Arc<dyn KeyValueDB>,
 	meta: Arc<RwLock<Meta<NumberFor<Block>, Block::Hash>>>,
 	leaves: RwLock<LeafSet<Block::Hash, NumberFor<Block>>>,
+	pub parent_child: RwLock<HashMap<Block::Hash, (Block::Hash, NumberFor<Block>, Block::Hash)>>,
 }
 
 impl<Block: BlockT> BlockchainDb<Block> {
@@ -259,6 +260,7 @@ impl<Block: BlockT> BlockchainDb<Block> {
 			db,
 			leaves: RwLock::new(leaves),
 			meta: Arc::new(RwLock::new(meta)),
+			parent_child: Default::default(),
 		})
 	}
 
@@ -289,10 +291,35 @@ impl<Block: BlockT> BlockchainDb<Block> {
 
 impl<Block: BlockT> client::blockchain::HeaderBackend<Block> for BlockchainDb<Block> {
 	fn header(&self, id: BlockId<Block>, origin: String) -> Result<Option<Block::Header>, client::error::Error> {
-		info!("@@@@ header() origin is {}", origin);
+		// info!("@@@@ header() origin is {}", origin);
 		let r = utils::read_header(&*self.db, columns::KEY_LOOKUP, columns::HEADER, id);
 		r
 	}
+
+	fn get_cached(&self, id: BlockId<Block>) -> Result<(Block::Hash, NumberFor<Block>, Block::Hash), client::error::Error> {
+		match id {
+			BlockId::Hash(hash) => {
+				let cache = self.parent_child.read();
+				let value = cache.get(&hash);
+				match value {
+					Some(v) => Ok(v.clone()),
+					_ => Err(client::error::Error::Backend("key not found in cache".to_owned())),
+				}
+			},
+			_ => Err(client::error::Error::Backend("can't read cached value for no hash".to_owned())),
+		}
+	}
+
+	fn put_cached(&self, id: BlockId<Block>, value: (Block::Hash, NumberFor<Block>, Block::Hash)) {
+		match id {
+			BlockId::Hash(hash) => {
+				let mut cache = self.parent_child.write();
+				cache.insert(hash, value); 
+			},
+			_ => {},
+		}
+	}
+
 
 	fn info(&self) -> client::blockchain::Info<Block> {
 		let meta = self.meta.read();

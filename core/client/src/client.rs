@@ -1403,6 +1403,14 @@ impl<B, E, Block, RA> ChainHeaderBackend<Block> for Client<B, E, Block, RA> wher
  		self.backend.blockchain().header(id, String::from("ChainHeaderBackend header()"))
 	}
 
+	fn get_cached(&self, id: BlockId<Block>) -> error::Result<(Block::Hash, NumberFor<Block>, Block::Hash)> {
+		unimplemented!()
+	}
+
+	fn put_cached(&self, id: BlockId<Block>, value: (Block::Hash, NumberFor<Block>, Block::Hash)) {
+		unimplemented!()
+	}
+
 	fn info(&self) -> blockchain::Info<Block> {
 		self.backend.blockchain().info()
 	}
@@ -1851,7 +1859,7 @@ pub mod utils {
 		where B: Backend<Block, Blake2Hasher>,
 			  E: CallExecutor<Block, Blake2Hasher> + Send + Sync,
 	{
-		info!("@@@@ is_descendent_of origin is {}", origin);
+		// info!("@@@@ is_descendent_of origin is {}", origin);
 		move |base, hash| {
 			if base == hash { return Ok(false); }
 			let mut hash = hash;
@@ -1865,17 +1873,6 @@ pub mod utils {
 					}
 				}
 			}
-			info!("@@@@ is_descendent_of \nbase={} \nhash={} current={:?}\n", base, hash, current);
-			let mut is_descendent = false;
-			if let Some(children) = client.parent_children.read().get(base) {
-				info!("@@@@ num of children {:?} {:?}", children.len(), children);
-				for c in children {
-					if *hash == *c {
-						return Ok(true)
-					}
-				}
-			}
-
 			let tree_route = blockchain::tree_route(
 				#[allow(deprecated)]
 				client.backend().blockchain(),
@@ -1885,11 +1882,6 @@ pub mod utils {
 			)?;
 
 			let r = tree_route.common_block().hash == *base;
-			if r {
-				let mut parent_children = client.parent_children.write();
-				let mut children = parent_children.entry(*base).or_insert(vec![]);
-				children.push(*hash);
-			}
 			Ok(r)
 		}
 	}

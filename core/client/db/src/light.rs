@@ -149,6 +149,14 @@ impl<Block> BlockchainHeaderBackend<Block> for LightStorage<Block>
 		utils::read_header(&*self.db, columns::KEY_LOOKUP, columns::HEADER, id)
 	}
 
+	fn get_cached(&self, id: BlockId<Block>) -> Result<(Block::Hash, NumberFor<Block>, Block::Hash), client::error::Error> {
+		unimplemented!()
+	}
+
+	fn put_cached(&self, id: BlockId<Block>, value: (Block::Hash, NumberFor<Block>, Block::Hash)) {
+		unimplemented!()
+	}
+
 	fn info(&self) -> BlockchainInfo<Block> {
 		let meta = self.meta.read();
 		BlockchainInfo {

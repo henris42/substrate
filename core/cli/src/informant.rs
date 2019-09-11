@@ -47,9 +47,14 @@ pub fn build(service: &impl AbstractService) -> impl Future<Item = (), Error = (
 		// detect and log reorganizations.
 		if let Some((ref last_num, ref last_hash)) = last_best {
 			if n.header.parent_hash() != last_hash && n.is_new_best  {
+				let cache_load_header = |id| {
+					match client.header(&id) {
+						Ok(Some(hdr)) => Ok((hdr.hash(), hdr.number().clone(), hdr.parent_hash().clone())),
+						_ => Err(client::error::Error::UnknownBlock(format!("{:?}", id))),
+					}
+				};
 				let tree_route = ::client::blockchain::tree_route(
-					|id| client.header(&id)?.ok_or_else(
-						|| client::error::Error::UnknownBlock(format!("{:?}", id))),
+					cache_load_header,
 					BlockId::Hash(last_hash.clone()),
 					BlockId::Hash(n.hash),
 				);

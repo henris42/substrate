@@ -144,14 +144,26 @@ impl<B, E, Block, RA> Client<Block> for SubstrateClient<B, E, Block, RA> where
 	}
 
 	fn is_descendent_of(&self, base: &Block::Hash, block: &Block::Hash) -> Result<bool, Error> {
+		use client::blockchain::HeaderBackend;
+
 		if base == block {
 			return Ok(false);
 		}
 
+		let cache_load_header = |id: BlockId<Block>| {
+			let backend = self.backend().blockchain();
+			let cached = backend.get_cached(id);
+			if cached.is_ok() {
+				return cached
+			}
+			match self.header(&id) {
+				Ok(Some(hdr)) => Ok((hdr.hash(), hdr.number().clone(), hdr.parent_hash().clone())),
+				_ => Err(client::error::Error::UnknownBlock(format!("{:?}", id))),
+			}
+		};
+
 		let tree_route = ::client::blockchain::tree_route(
-			|id| self.header(&id)?.ok_or_else(||
-				client::error::Error::UnknownBlock(format!("{:?}", id))
-			),
+			cache_load_header,
 			BlockId::Hash(*block),
 			BlockId::Hash(*base),
 		)?;

@@ -38,6 +38,9 @@ pub trait HeaderBackend<Block: BlockT>: Send + Sync {
 	/// Get block hash by number. Returns `None` if the header is not in the chain.
 	fn hash(&self, number: NumberFor<Block>) -> Result<Option<Block::Hash>>;
 
+	fn get_cached(&self, id: BlockId<Block>) -> Result<(Block::Hash, NumberFor<Block>, Block::Hash)>;
+	fn put_cached(&self, id: BlockId<Block>, value: (Block::Hash, NumberFor<Block>, Block::Hash));
+
 	/// Convert an arbitrary block ID into a block hash.
 	fn block_hash_from_id(&self, id: &BlockId<Block>) -> Result<Option<Block::Hash>> {
 		match *id {
@@ -197,55 +200,55 @@ impl<Block: BlockT> TreeRoute<Block> {
 }
 
 /// Compute a tree-route between two blocks. See tree-route docs for more details.
-pub fn tree_route<Block: BlockT, F: Fn(BlockId<Block>) -> Result<<Block as BlockT>::Header>>(
+pub fn tree_route<Block: BlockT, F: Fn(BlockId<Block>) -> Result<(Block::Hash, NumberFor<Block>, Block::Hash)>>(
 	load_header: F,
 	from: BlockId<Block>,
 	to: BlockId<Block>,
 ) -> Result<TreeRoute<Block>> {
-	let mut from = load_header(from)?;
-	let mut to = load_header(to)?;
+	let mut from_data = load_header(from)?;
+	let mut to_data = load_header(to)?;
 
 	let mut from_branch = Vec::new();
 	let mut to_branch = Vec::new();
 
-	while to.number() > from.number() {
+	while to_data.1 > from_data.1 {
 		to_branch.push(RouteEntry {
-			number: to.number().clone(),
-			hash: to.hash(),
+			number: to_data.1.clone(),
+			hash: to_data.0.clone(),
 		});
 
-		to = load_header(BlockId::Hash(*to.parent_hash()))?;
+		to_data = load_header(BlockId::Hash(to_data.2))?;
 	}
 
-	while from.number() > to.number() {
+	while from_data.1 > to_data.1 {
 		from_branch.push(RouteEntry {
-			number: from.number().clone(),
-			hash: from.hash(),
+			number: from_data.1.clone(),
+			hash: from_data.0.clone(),
 		});
-		from = load_header(BlockId::Hash(*from.parent_hash()))?;
+		from_data = load_header(BlockId::Hash(from_data.2))?;
 	}
 
 	// numbers are equal now. walk backwards until the block is the same
 
-	while to != from {
+	while to_data != from_data {
 		to_branch.push(RouteEntry {
-			number: to.number().clone(),
-			hash: to.hash(),
+			number: to_data.1.clone(),
+			hash: to_data.0,
 		});
-		to = load_header(BlockId::Hash(*to.parent_hash()))?;
+		to_data = load_header(BlockId::Hash(to_data.2))?;
 
 		from_branch.push(RouteEntry {
-			number: from.number().clone(),
-			hash: from.hash(),
+			number: from_data.1.clone(),
+			hash: from_data.0,
 		});
-		from = load_header(BlockId::Hash(*from.parent_hash()))?;
+		from_data = load_header(BlockId::Hash(from_data.2))?;
 	}
 
 	// add the pivot block. and append the reversed to-branch (note that it's reverse order originalls)
 	let pivot = from_branch.len();
 	from_branch.push(RouteEntry {
-		number: to.number().clone(),
-		hash: to.hash(),
+		number: to_data.1.clone(),
+		hash: to_data.0,
 	});
 	from_branch.extend(to_branch.into_iter().rev());
 

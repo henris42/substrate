@@ -498,8 +498,20 @@ pub(crate) fn ancestry<B, Block: BlockT<Hash=H256>, E, RA>(
 {
 	if base == block { return Err(GrandpaError::NotDescendent) }
 
+	let cache_load_header = |id: BlockId<Block>| {
+		let backend = client.backend().blockchain();
+		let cached = backend.get_cached(id);
+		if cached.is_ok() {
+			return cached
+		}
+		match client.header(&id) {
+			Ok(Some(hdr)) => Ok((hdr.hash(), hdr.number().clone(), hdr.parent_hash().clone())),
+			_ => Err(client::error::Error::UnknownBlock(format!("{:?}", id))),
+		}
+	};
+
 	let tree_route_res = ::client::blockchain::tree_route(
-		|id| client.header(&id)?.ok_or(client::error::Error::UnknownBlock(format!("{:?}", id))),
+		cache_load_header,
 		BlockId::Hash(block),
 		BlockId::Hash(base),
 	);

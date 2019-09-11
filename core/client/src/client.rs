@@ -969,8 +969,19 @@ impl<B, E, Block, RA> Client<B, E, Block, RA> where
 		};
 
 		let retracted = if is_new_best {
+			let cache_load_header = |id: BlockId<Block>| {
+				let backend = self.backend().blockchain();
+				let cached = backend.get_cached(id);
+				if cached.is_ok() {
+					return cached
+				}
+				match self.header(&id) {
+					Ok(Some(hdr)) => Ok((hdr.hash(), hdr.number().clone(), hdr.parent_hash().clone())),
+					_ => Err(Error::UnknownBlock(format!("{:?}", id))),
+				}
+			};
 			let route_from_best = crate::blockchain::tree_route(
-				|id| self.header(&id)?.ok_or_else(|| Error::UnknownBlock(format!("{:?}", id))),
+				cache_load_header,
 				BlockId::Hash(info.best_hash),
 				BlockId::Hash(parent_hash),
 			)?;
@@ -1103,8 +1114,20 @@ impl<B, E, Block, RA> Client<B, E, Block, RA> where
 			return Ok(());
 		}
 
+		let cache_load_header = |id: BlockId<Block>| {
+			let backend = self.backend().blockchain();
+			let cached = backend.get_cached(id);
+			if cached.is_ok() {
+				return cached
+			}
+			match self.header(&id) {
+				Ok(Some(hdr)) => Ok((hdr.hash(), hdr.number().clone(), hdr.parent_hash().clone())),
+				_ => Err(Error::UnknownBlock(format!("{:?}", id))),
+			}
+		};
+
 		let route_from_finalized = crate::blockchain::tree_route(
-			|id| self.header(&id)?.ok_or_else(|| Error::UnknownBlock(format!("{:?}", id))),
+			cache_load_header,
 			BlockId::Hash(last_finalized),
 			BlockId::Hash(block),
 		)?;
@@ -1117,7 +1140,7 @@ impl<B, E, Block, RA> Client<B, E, Block, RA> where
 		}
 
 		let route_from_best = crate::blockchain::tree_route(
-			|id| self.header(&id)?.ok_or_else(|| Error::UnknownBlock(format!("{:?}", id))),
+			cache_load_header,
 			BlockId::Hash(best_block),
 			BlockId::Hash(block),
 		)?;
@@ -1251,7 +1274,7 @@ impl<B, E, Block, RA> Client<B, E, Block, RA> where
 	}
 
 	/// Get block header by id.
-	pub fn header(&self, id: &BlockId<Block>) -> error::Result<Option<<Block as BlockT>::Header>> {
+	pub fn  header(&self, id: &BlockId<Block>) -> error::Result<Option<<Block as BlockT>::Header>> {
 		self.backend.blockchain().header(*id)
 	}
 
@@ -1351,6 +1374,14 @@ impl<B, E, Block, RA> ChainHeaderBackend<Block> for Client<B, E, Block, RA> wher
 		self.backend.blockchain().header(id)
 	}
 
+	fn get_cached(&self, id: BlockId<Block>) -> error::Result<(Block::Hash, NumberFor<Block>, Block::Hash)> {
+		unimplemented!()
+	}
+
+	fn put_cached(&self, id: BlockId<Block>, value: (Block::Hash, NumberFor<Block>, Block::Hash)) {
+		unimplemented!()
+	}
+
 	fn info(&self) -> blockchain::Info<Block> {
 		self.backend.blockchain().info()
 	}
@@ -1376,6 +1407,14 @@ impl<B, E, Block, RA> ChainHeaderBackend<Block> for &Client<B, E, Block, RA> whe
 {
 	fn header(&self, id: BlockId<Block>) -> error::Result<Option<Block::Header>> {
 		(**self).backend.blockchain().header(id)
+	}
+
+	fn get_cached(&self, id: BlockId<Block>) -> error::Result<(Block::Hash, NumberFor<Block>, Block::Hash)> {
+		unimplemented!()
+	}
+
+	fn put_cached(&self, id: BlockId<Block>, value: (Block::Hash, NumberFor<Block>, Block::Hash)) {
+		unimplemented!()
 	}
 
 	fn info(&self) -> blockchain::Info<Block> {
@@ -1926,8 +1965,20 @@ pub mod utils {
 				}
 			}
 
+			let cache_load_header = |id: BlockId<Block>| {
+				let backend = client.backend().blockchain();
+				let cached = backend.get_cached(id);
+				if cached.is_ok() {
+					return cached
+				}
+				match client.header(&id) {
+					Ok(Some(hdr)) => Ok((hdr.hash(), hdr.number().clone(), hdr.parent_hash().clone())),
+					_ => Err(Error::UnknownBlock(format!("{:?}", id))),
+				}
+			};
+
 			let tree_route = blockchain::tree_route(
-				|id| client.header(&id)?.ok_or_else(|| Error::UnknownBlock(format!("{:?}", id))),
+				cache_load_header,
 				BlockId::Hash(*hash),
 				BlockId::Hash(*base),
 			)?;

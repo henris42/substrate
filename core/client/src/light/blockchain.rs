@@ -134,6 +134,14 @@ impl<S, F, Block> BlockchainHeaderBackend<Block> for Blockchain<S, F> where Bloc
 		}
 	}
 
+	fn get_cached(&self, id: BlockId<Block>) -> ClientResult<(Block::Hash, NumberFor<Block>, Block::Hash)> {
+		unimplemented!()
+	}
+
+	fn put_cached(&self, id: BlockId<Block>, value: (Block::Hash, NumberFor<Block>, Block::Hash)) {
+		unimplemented!()
+	}
+
 	fn info(&self) -> BlockchainInfo<Block> {
 		self.storage.info()
 	}

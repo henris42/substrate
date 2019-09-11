@@ -265,6 +265,7 @@ pub struct BlockchainDb<Block: BlockT> {
 	db: Arc<dyn KeyValueDB>,
 	meta: Arc<RwLock<Meta<NumberFor<Block>, Block::Hash>>>,
 	leaves: RwLock<LeafSet<Block::Hash, NumberFor<Block>>>,
+	pub parent_child: RwLock<HashMap<Block::Hash, (Block::Hash, NumberFor<Block>, Block::Hash)>>,
 }
 
 impl<Block: BlockT> BlockchainDb<Block> {
@@ -275,6 +276,7 @@ impl<Block: BlockT> BlockchainDb<Block> {
 			db,
 			leaves: RwLock::new(leaves),
 			meta: Arc::new(RwLock::new(meta)),
+			parent_child: Default::default(),
 		})
 	}
 
@@ -307,6 +309,31 @@ impl<Block: BlockT> client::blockchain::HeaderBackend<Block> for BlockchainDb<Bl
 	fn header(&self, id: BlockId<Block>) -> Result<Option<Block::Header>, client::error::Error> {
 		utils::read_header(&*self.db, columns::KEY_LOOKUP, columns::HEADER, id)
 	}
+
+	fn get_cached(&self, id: BlockId<Block>) -> Result<(Block::Hash, NumberFor<Block>, Block::Hash), client::error::Error> {
+		match id {
+			BlockId::Hash(hash) => {
+				let cache = self.parent_child.read();
+				let value = cache.get(&hash);
+				match value {
+					Some(v) => Ok(v.clone()),
+					_ => Err(client::error::Error::Backend("key not found in cache".to_owned())),
+				}
+			},
+			_ => Err(client::error::Error::Backend("can't read cached value for no hash".to_owned())),
+		}
+	}
+
+	fn put_cached(&self, id: BlockId<Block>, value: (Block::Hash, NumberFor<Block>, Block::Hash)) {
+		match id {
+			BlockId::Hash(hash) => {
+				let mut cache = self.parent_child.write();
+				cache.insert(hash, value); 
+			},
+			_ => {},
+		}
+	}
+
 
 	fn info(&self) -> client::blockchain::Info<Block> {
 		let meta = self.meta.read();
@@ -906,10 +933,19 @@ impl<Block: BlockT<Hash=H256>> Backend<Block> {
 
 		// cannot find tree route with empty DB.
 		if meta.best_hash != Default::default() {
+			let cache_load_header = |id: BlockId<Block>| {
+				let cached = self.blockchain.get_cached(id);
+				if cached.is_ok() {
+					return cached
+				}
+				match self.blockchain.header(id) {
+					Ok(Some(hdr)) => Ok((hdr.hash(), hdr.number().clone(), hdr.parent_hash().clone())),
+					_ => Err(client::error::Error::UnknownBlock(format!("{:?}", id))),
+				}
+			};
+
 			let tree_route = ::client::blockchain::tree_route(
-				|id| self.blockchain.header(id)?.ok_or_else(
-					|| client::error::Error::UnknownBlock(format!("{:?}", id))
-				),
+				cache_load_header,
 				BlockId::Hash(meta.best_hash),
 				BlockId::Hash(route_to),
 			)?;

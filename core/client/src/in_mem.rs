@@ -222,8 +222,14 @@ impl<Block: BlockT> Blockchain<Block> {
 			if &best_hash == header.parent_hash() {
 				None
 			} else {
+				let load_header_data = |id: BlockId<Block>| {
+					match self.header(id) {
+						Ok(Some(hdr)) => Ok((hdr.hash(), hdr.number().clone(), hdr.parent_hash().clone())),
+						_ => Err(error::Error::UnknownBlock(format!("{:?}", id))),
+					}
+				};
 				let route = crate::blockchain::tree_route(
-					|id| self.header(id)?.ok_or_else(|| error::Error::UnknownBlock(format!("{:?}", id))),
+					load_header_data,
 					BlockId::Hash(best_hash),
 					BlockId::Hash(*header.parent_hash()),
 				)?;
@@ -292,6 +298,14 @@ impl<Block: BlockT> HeaderBackend<Block> for Blockchain<Block> {
 		Ok(self.id(id).and_then(|hash| {
 			self.storage.read().blocks.get(&hash).map(|b| b.header().clone())
 		}))
+	}
+
+	fn get_cached(&self, id: BlockId<Block>) -> error::Result<(Block::Hash, NumberFor<Block>, Block::Hash)> {
+		unimplemented!()
+	}
+
+	fn put_cached(&self, id: BlockId<Block>, value: (Block::Hash, NumberFor<Block>, Block::Hash)) {
+		unimplemented!()
 	}
 
 	fn info(&self) -> blockchain::Info<Block> {

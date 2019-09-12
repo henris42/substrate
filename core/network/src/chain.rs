@@ -24,6 +24,7 @@ use sr_primitives::traits::{Block as BlockT, Header as HeaderT};
 use sr_primitives::generic::{BlockId};
 use sr_primitives::Justification;
 use primitives::{H256, Blake2Hasher, storage::StorageKey};
+use log::info;
 
 /// Local client abstraction for the network.
 pub trait Client<Block: BlockT>: Send + Sync {
@@ -154,8 +155,12 @@ impl<B, E, Block, RA> Client<Block> for SubstrateClient<B, E, Block, RA> where
 			let backend = self.backend().blockchain();
 			let cached = backend.get_cached(id);
 			if cached.is_ok() {
+				info!("@@@@ is_descendent_of net CACHED");
+			
 				return cached
 			}
+			info!("@@@@ is_descendent_of net MISSED");
+			
 			match self.header(&id) {
 				Ok(Some(hdr)) => Ok((hdr.hash(), hdr.number().clone(), hdr.parent_hash().clone())),
 				_ => Err(client::error::Error::UnknownBlock(format!("{:?}", id))),

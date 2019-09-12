@@ -973,8 +973,12 @@ impl<B, E, Block, RA> Client<B, E, Block, RA> where
 				let backend = self.backend().blockchain();
 				let cached = backend.get_cached(id);
 				if cached.is_ok() {
+					info!("@@@@ execute_and_import_block CACHED");
+					
 					return cached
 				}
+				info!("@@@@ execute_and_import_block MISSED");
+					
 				match self.header(&id) {
 					Ok(Some(hdr)) => Ok((hdr.hash(), hdr.number().clone(), hdr.parent_hash().clone())),
 					_ => Err(Error::UnknownBlock(format!("{:?}", id))),
@@ -1118,8 +1122,12 @@ impl<B, E, Block, RA> Client<B, E, Block, RA> where
 			let backend = self.backend().blockchain();
 			let cached = backend.get_cached(id);
 			if cached.is_ok() {
+				info!("@@@@ apply_finality_with_block_hash CACHED");
+					
 				return cached
 			}
+			info!("@@@@ apply_finality_with_block_hash MISSED");
+				
 			match self.header(&id) {
 				Ok(Some(hdr)) => Ok((hdr.hash(), hdr.number().clone(), hdr.parent_hash().clone())),
 				_ => Err(Error::UnknownBlock(format!("{:?}", id))),
@@ -1969,8 +1977,11 @@ pub mod utils {
 				let backend = client.backend().blockchain();
 				let cached = backend.get_cached(id);
 				if cached.is_ok() {
+					info!("@@@@ is_descendent_of CACHED");
 					return cached
 				}
+				info!("@@@@ is_descendent_of MISSED");
+					
 				match client.header(&id) {
 					Ok(Some(hdr)) => Ok((hdr.hash(), hdr.number().clone(), hdr.parent_hash().clone())),
 					_ => Err(Error::UnknownBlock(format!("{:?}", id))),

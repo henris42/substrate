@@ -67,7 +67,7 @@ use client::children;
 use state_db::StateDb;
 use consensus_common::well_known_cache_keys;
 use crate::storage_cache::{CachingState, SharedCache, new_shared_cache};
-use log::{trace, debug, warn};
+use log::{trace, debug, warn, info};
 pub use state_db::PruningMode;
 
 #[cfg(feature = "test-helpers")]
@@ -936,8 +936,11 @@ impl<Block: BlockT<Hash=H256>> Backend<Block> {
 			let cache_load_header = |id: BlockId<Block>| {
 				let cached = self.blockchain.get_cached(id);
 				if cached.is_ok() {
+					info!("@@@@ set_head_with_transaction CACHED");
+					
 					return cached
 				}
+				info!("@@@@ set_head_with_transaction CACHED");
 				match self.blockchain.header(id) {
 					Ok(Some(hdr)) => Ok((hdr.hash(), hdr.number().clone(), hdr.parent_hash().clone())),
 					_ => Err(client::error::Error::UnknownBlock(format!("{:?}", id))),

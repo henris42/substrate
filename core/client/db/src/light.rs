@@ -36,7 +36,7 @@ use consensus_common::well_known_cache_keys;
 use crate::cache::{DbCacheSync, DbCache, ComplexBlockId, EntryType as CacheEntryType};
 use crate::utils::{self, meta_keys, Meta, db_err, read_db, block_id_to_lookup_key, read_meta};
 use crate::DatabaseSettings;
-use log::{trace, warn, debug};
+use log::{trace, warn, debug, info};
 
 pub(crate) mod columns {
 	pub const META: Option<u32> = crate::utils::COLUMN_META;

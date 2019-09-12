@@ -22,6 +22,8 @@ use futures03::{StreamExt as _, TryStreamExt as _};
 use log::{info, warn};
 use sr_primitives::{generic::BlockId, traits::Header};
 use service::AbstractService;
+use client::backend::Backend;
+use client::blockchain::HeaderBackend;
 
 mod display;
 
@@ -48,6 +50,14 @@ pub fn build(service: &impl AbstractService) -> impl Future<Item = (), Error = (
 		if let Some((ref last_num, ref last_hash)) = last_best {
 			if n.header.parent_hash() != last_hash && n.is_new_best  {
 				let cache_load_header = |id| {
+
+					let cached = client.backend().blockchain().get_cached(id);
+					if cached.is_ok() {
+						info!("@@@@ informant CACHED");
+						return cached
+					}
+					info!("@@@@ informant MISSED");
+					
 					match client.header(&id) {
 						Ok(Some(hdr)) => Ok((hdr.hash(), hdr.number().clone(), hdr.parent_hash().clone())),
 						_ => Err(client::error::Error::UnknownBlock(format!("{:?}", id))),

@@ -162,7 +162,11 @@ impl<B, E, Block, RA> Client<Block> for SubstrateClient<B, E, Block, RA> where
 			info!("@@@@ is_descendent_of net MISSED");
 			
 			match self.header(&id) {
-				Ok(Some(hdr)) => Ok((hdr.hash(), hdr.number().clone(), hdr.parent_hash().clone())),
+				Ok(Some(hdr)) => {
+					let data = (hdr.hash(), hdr.number().clone(), hdr.parent_hash().clone());
+					backend.put_cached(id, data.clone());
+					Ok(data)
+				},
 				_ => Err(client::error::Error::UnknownBlock(format!("{:?}", id))),
 			}
 		};

@@ -942,7 +942,11 @@ impl<Block: BlockT<Hash=H256>> Backend<Block> {
 				}
 				info!("@@@@ set_head_with_transaction CACHED");
 				match self.blockchain.header(id) {
-					Ok(Some(hdr)) => Ok((hdr.hash(), hdr.number().clone(), hdr.parent_hash().clone())),
+					Ok(Some(hdr)) => {
+						let data = (hdr.hash(), hdr.number().clone(), hdr.parent_hash().clone());
+						self.blockchain.put_cached(id, data.clone());
+						Ok(data)
+					},
 					_ => Err(client::error::Error::UnknownBlock(format!("{:?}", id))),
 				}
 			};

@@ -50,8 +50,8 @@ pub fn build(service: &impl AbstractService) -> impl Future<Item = (), Error = (
 		if let Some((ref last_num, ref last_hash)) = last_best {
 			if n.header.parent_hash() != last_hash && n.is_new_best  {
 				let cache_load_header = |id| {
-
-					let cached = client.backend().blockchain().get_cached(id);
+					let backend = client.backend().blockchain();
+					let cached = backend.get_cached(id);
 					if cached.is_ok() {
 						info!("@@@@ informant CACHED");
 						return cached
@@ -59,7 +59,11 @@ pub fn build(service: &impl AbstractService) -> impl Future<Item = (), Error = (
 					info!("@@@@ informant MISSED");
 					
 					match client.header(&id) {
-						Ok(Some(hdr)) => Ok((hdr.hash(), hdr.number().clone(), hdr.parent_hash().clone())),
+						Ok(Some(hdr)) => {
+							let data = (hdr.hash(), hdr.number().clone(), hdr.parent_hash().clone());
+							backend.put_cached(id, data.clone());
+							Ok(data)
+						},
 						_ => Err(client::error::Error::UnknownBlock(format!("{:?}", id))),
 					}
 				};

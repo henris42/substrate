@@ -509,7 +509,11 @@ pub(crate) fn ancestry<B, Block: BlockT<Hash=H256>, E, RA>(
 		info!("@@@@ ancestry MISSED");
 			
 		match client.header(&id) {
-			Ok(Some(hdr)) => Ok((hdr.hash(), hdr.number().clone(), hdr.parent_hash().clone())),
+			Ok(Some(hdr)) => {
+				let data = (hdr.hash(), hdr.number().clone(), hdr.parent_hash().clone());
+				backend.put_cached(id, data.clone());
+				Ok(data)
+			},
 			_ => Err(client::error::Error::UnknownBlock(format!("{:?}", id))),
 		}
 	};

@@ -977,10 +977,14 @@ impl<B, E, Block, RA> Client<B, E, Block, RA> where
 					
 					return cached
 				}
-				info!("@@@@ execute_and_import_block MISSED");
+				info!("@@@@ execute_and_import_block MISSED {:?}", id);
 					
 				match self.header(&id) {
-					Ok(Some(hdr)) => Ok((hdr.hash(), hdr.number().clone(), hdr.parent_hash().clone())),
+					Ok(Some(hdr)) => {
+						let data = (hdr.hash(), hdr.number().clone(), hdr.parent_hash().clone());
+						backend.put_cached(id, data.clone());
+						Ok(data)
+					},
 					_ => Err(Error::UnknownBlock(format!("{:?}", id))),
 				}
 			};
@@ -1129,7 +1133,11 @@ impl<B, E, Block, RA> Client<B, E, Block, RA> where
 			info!("@@@@ apply_finality_with_block_hash MISSED");
 				
 			match self.header(&id) {
-				Ok(Some(hdr)) => Ok((hdr.hash(), hdr.number().clone(), hdr.parent_hash().clone())),
+				Ok(Some(hdr)) => {
+					let data = (hdr.hash(), hdr.number().clone(), hdr.parent_hash().clone());
+					backend.put_cached(id, data.clone());
+					Ok(data)
+				},
 				_ => Err(Error::UnknownBlock(format!("{:?}", id))),
 			}
 		};
@@ -1983,7 +1991,11 @@ pub mod utils {
 				info!("@@@@ is_descendent_of MISSED");
 					
 				match client.header(&id) {
-					Ok(Some(hdr)) => Ok((hdr.hash(), hdr.number().clone(), hdr.parent_hash().clone())),
+					Ok(Some(hdr)) => {
+						let data = (hdr.hash(), hdr.number().clone(), hdr.parent_hash().clone());
+						backend.put_cached(id, data.clone());
+						Ok(data)
+					},
 					_ => Err(Error::UnknownBlock(format!("{:?}", id))),
 				}
 			};

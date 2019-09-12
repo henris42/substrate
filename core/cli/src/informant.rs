@@ -53,10 +53,9 @@ pub fn build(service: &impl AbstractService) -> impl Future<Item = (), Error = (
 					let backend = client.backend().blockchain();
 					let cached = backend.get_cached(id);
 					if cached.is_ok() {
-						info!("@@@@ informant CACHED");
 						return cached
 					}
-					info!("@@@@ informant MISSED");
+					info!("@@@@ informant MISSED {:?}", id);
 					
 					match client.header(&id) {
 						Ok(Some(hdr)) => {

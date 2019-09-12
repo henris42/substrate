@@ -502,11 +502,9 @@ pub(crate) fn ancestry<B, Block: BlockT<Hash=H256>, E, RA>(
 		let backend = client.backend().blockchain();
 		let cached = backend.get_cached(id);
 		if cached.is_ok() {
-			info!("@@@@ ancestry CACHED");
-				
 			return cached
 		}
-		info!("@@@@ ancestry MISSED");
+		info!("@@@@ ancestry MISSED {:?}", id);
 			
 		match client.header(&id) {
 			Ok(Some(hdr)) => {

@@ -973,8 +973,6 @@ impl<B, E, Block, RA> Client<B, E, Block, RA> where
 				let backend = self.backend().blockchain();
 				let cached = backend.get_cached(id);
 				if cached.is_ok() {
-					info!("@@@@ execute_and_import_block CACHED");
-					
 					return cached
 				}
 				info!("@@@@ execute_and_import_block MISSED {:?}", id);
@@ -1126,11 +1124,9 @@ impl<B, E, Block, RA> Client<B, E, Block, RA> where
 			let backend = self.backend().blockchain();
 			let cached = backend.get_cached(id);
 			if cached.is_ok() {
-				info!("@@@@ apply_finality_with_block_hash CACHED");
-					
 				return cached
 			}
-			info!("@@@@ apply_finality_with_block_hash MISSED");
+			info!("@@@@ apply_finality_with_block_hash MISSED {:?}", id);
 				
 			match self.header(&id) {
 				Ok(Some(hdr)) => {
@@ -1985,10 +1981,9 @@ pub mod utils {
 				let backend = client.backend().blockchain();
 				let cached = backend.get_cached(id);
 				if cached.is_ok() {
-					info!("@@@@ is_descendent_of CACHED");
 					return cached
 				}
-				info!("@@@@ is_descendent_of MISSED");
+				info!("@@@@ is_descendent_of MISSED {:?}", id);
 					
 				match client.header(&id) {
 					Ok(Some(hdr)) => {

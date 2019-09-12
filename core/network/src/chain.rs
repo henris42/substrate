@@ -155,11 +155,9 @@ impl<B, E, Block, RA> Client<Block> for SubstrateClient<B, E, Block, RA> where
 			let backend = self.backend().blockchain();
 			let cached = backend.get_cached(id);
 			if cached.is_ok() {
-				info!("@@@@ is_descendent_of net CACHED");
-			
 				return cached
 			}
-			info!("@@@@ is_descendent_of net MISSED");
+			info!("@@@@ is_descendent_of net MISSED {:?}", id);
 			
 			match self.header(&id) {
 				Ok(Some(hdr)) => {

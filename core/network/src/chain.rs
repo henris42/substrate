@@ -157,8 +157,6 @@ impl<B, E, Block, RA> Client<Block> for SubstrateClient<B, E, Block, RA> where
 			if cached.is_ok() {
 				return cached
 			}
-			info!("@@@@ is_descendent_of net MISSED {:?}", id);
-			
 			match self.header(&id) {
 				Ok(Some(hdr)) => {
 					let data = (hdr.hash(), hdr.number().clone(), hdr.parent_hash().clone());

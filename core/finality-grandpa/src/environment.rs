@@ -504,8 +504,6 @@ pub(crate) fn ancestry<B, Block: BlockT<Hash=H256>, E, RA>(
 		if cached.is_ok() {
 			return cached
 		}
-		info!("@@@@ ancestry MISSED {:?}", id);
-			
 		match client.header(&id) {
 			Ok(Some(hdr)) => {
 				let data = (hdr.hash(), hdr.number().clone(), hdr.parent_hash().clone());

@@ -938,7 +938,6 @@ impl<Block: BlockT<Hash=H256>> Backend<Block> {
 				if cached.is_ok() {
 					return cached
 				}
-				info!("@@@@ set_head_with_transaction MISSED {:?}", id);
 				match self.blockchain.header(id) {
 					Ok(Some(hdr)) => {
 						let data = (hdr.hash(), hdr.number().clone(), hdr.parent_hash().clone());

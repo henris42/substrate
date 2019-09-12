@@ -975,8 +975,6 @@ impl<B, E, Block, RA> Client<B, E, Block, RA> where
 				if cached.is_ok() {
 					return cached
 				}
-				info!("@@@@ execute_and_import_block MISSED {:?}", id);
-					
 				match self.header(&id) {
 					Ok(Some(hdr)) => {
 						let data = (hdr.hash(), hdr.number().clone(), hdr.parent_hash().clone());
@@ -1126,8 +1124,6 @@ impl<B, E, Block, RA> Client<B, E, Block, RA> where
 			if cached.is_ok() {
 				return cached
 			}
-			info!("@@@@ apply_finality_with_block_hash MISSED {:?}", id);
-				
 			match self.header(&id) {
 				Ok(Some(hdr)) => {
 					let data = (hdr.hash(), hdr.number().clone(), hdr.parent_hash().clone());
@@ -1983,8 +1979,6 @@ pub mod utils {
 				if cached.is_ok() {
 					return cached
 				}
-				info!("@@@@ is_descendent_of MISSED {:?}", id);
-					
 				match client.header(&id) {
 					Ok(Some(hdr)) => {
 						let data = (hdr.hash(), hdr.number().clone(), hdr.parent_hash().clone());

@@ -55,8 +55,6 @@ pub fn build(service: &impl AbstractService) -> impl Future<Item = (), Error = (
 					if cached.is_ok() {
 						return cached
 					}
-					info!("@@@@ informant MISSED {:?}", id);
-					
 					match client.header(&id) {
 						Ok(Some(hdr)) => {
 							let data = (hdr.hash(), hdr.number().clone(), hdr.parent_hash().clone());
